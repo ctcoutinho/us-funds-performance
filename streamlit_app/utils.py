@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
+
 def config_menu_footer() -> None:
     """
     Hides the Streamlit menu and replaces footer.
@@ -30,6 +31,7 @@ def config_menu_footer() -> None:
     """
 
     st.markdown(app_style, unsafe_allow_html=True)
+
 
 def get_delta(df: pd.DataFrame, key: str) -> str:
     """
@@ -79,22 +81,36 @@ def generate_card(text: str) -> None:
     Parameters:
         text (str): The title text for the card.
     """
-    st.markdown(f"""
+    st.markdown(
+        f"""
         <div style='border: 1px solid #e6e6e6; border-radius: 5px; padding: 10px; display: flex; justify-content: center; align-items: center'>
             <i class='fas fa-chart-line' style='font-size: 24px; color: #0072C6; margin-right: 10px'></i>
             <h3 style='text-align: center'>{text}</h3>
         </div>
-         """, unsafe_allow_html=True)
+         """,
+        unsafe_allow_html=True,
+    )
 
 
-def generate_investment_profile(fund_long_name,fund_category,inception_date,fund_family,currency,exchange_name,exchange_code,region) -> None:
+def generate_investment_profile(
+    fund_long_name,
+    fund_category,
+    total_net_assets,
+    inception_date,
+    fund_family,
+    currency,
+    exchange_name,
+    exchange_code,
+    region,
+) -> None:
     """
     Generates a styled card with a title and icon.
 
     Parameters:
         text (str): The title text for the card.
     """
-    st.markdown(f"""
+    st.markdown(
+        f"""
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -131,7 +147,11 @@ def generate_investment_profile(fund_long_name,fund_category,inception_date,fund
                             <td>{fund_category}</td>
                         </tr>
                         <tr>
-                            <th>Inception Date</th>
+                            <th>Total net assets</th>
+                            <td>{total_net_assets}</td>
+                        </tr>
+                        <tr>
+                            <th>Inception date</th>
                             <td>{inception_date}</td>
                         </tr>
                         <tr>
@@ -161,7 +181,9 @@ def generate_investment_profile(fund_long_name,fund_category,inception_date,fund
                     </tbody>
                 </table>
             </body>
-            </html>""", unsafe_allow_html=True)
+            </html>""",
+        unsafe_allow_html=True,
+    )
 
 
 def generate_long_text(text: str) -> None:
@@ -171,12 +193,16 @@ def generate_long_text(text: str) -> None:
     Parameters:
         text (str): The title text for the card.
     """
-    st.markdown(f"""
+    st.markdown(
+        f"""
         <div style='border: 1px solid #e6e6e6; border-radius: 5px; padding: 10px; display: flex; justify-content: flex-start; align-items: center'>
             <i class='fas fa-chart-line' style='font-size: 24px; color: #0072C6; margin-right: 10px'></i>
             <h3 style='text-align: left; margin: 0'>{text}</h3>
         </div>
-         """, unsafe_allow_html=True)
+         """,
+        unsafe_allow_html=True,
+    )
+
 
 def color_highlighter(val: str) -> str:
     """
@@ -188,12 +214,19 @@ def color_highlighter(val: str) -> str:
     Returns:
         str: The CSS styling string.
     """
-    if val.startswith('-'):
-        return 'color: rgba(255, 0, 0, 0.9);'
+    if val.startswith("-"):
+        return "color: rgba(255, 0, 0, 0.9);"
     else:
         return None
 
-def create_donut_chart(labels, values, hole_size=0.3, title_text='Your Chart Title', hoverinfo='label+percent'):
+
+def create_donut_chart(
+    labels,
+    values,
+    hole_size=0.3,
+    title_text="Your Chart Title",
+    hoverinfo="label+percent",
+):
     """
     Creates a Plotly donut chart.
 
@@ -215,20 +248,47 @@ def create_donut_chart(labels, values, hole_size=0.3, title_text='Your Chart Tit
             textinfo=hoverinfo,
             showlegend=False,
             hovertemplate="<b>%{label}</b><br>%{value}<br><extra></extra>",
-            hole=hole_size
+            hole=hole_size,
         )
     )
 
     fig.update_layout(
         title=dict(text=title_text),
-        annotations=[
-            dict(
-                text=title_text, 
-                x=0.5, y=0.5, 
-                font_size=12,
-                showarrow=False
+        annotations=[dict(text="", x=1, y=1, font_size=12, showarrow=False)],
+    )
+
+    return fig
+
+
+def create_candlestick_chart(df_fact_etf):
+    fig = go.Figure(
+        data=[
+            go.Candlestick(
+                x=df_fact_etf["price_date"],
+                open=df_fact_etf["open"],
+                high=df_fact_etf["high"],
+                low=df_fact_etf["low"],
+                close=df_fact_etf["close"],
+                increasing_line_color="green",
+                decreasing_line_color="red",
             )
         ]
     )
+    fig.update_layout(
+        title="Open, High, Low, Close (OHLC)", xaxis_title="Date", yaxis_title="Price"
+    )
+    return fig
 
+
+def create_volume_chart(df_fact_etf):
+    fig = go.Figure(
+        data=[
+            go.Scatter(
+                x=df_fact_etf["price_date"],
+                y=df_fact_etf["volume"],
+                line=dict(color="blue"),
+            )
+        ]
+    )
+    fig.update_layout(title="Trading Volume", xaxis_title="Date", yaxis_title="Volume")
     return fig

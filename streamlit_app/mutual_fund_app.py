@@ -1,16 +1,21 @@
 import streamlit as st
+import os
 import duckdb
 import pandas as pd
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import datetime
 from utils import (
-    config_menu_footer, generate_card, generate_long_text,generate_investment_profile,create_donut_chart, empty_lines, get_delta, color_highlighter
+    config_menu_footer, generate_card, generate_long_text,generate_investment_profile,create_donut_chart,create_candlestick_chart, create_volume_chart,empty_lines, get_delta, color_highlighter
 )
 
-# Connect to your DuckDB database
+
 def connect_to_db():
-    return duckdb.connect(database='/home/spartaco/Projects/us-funds-performance/us-funds-project.db', read_only=True)
+    # Get the current script directory 
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the path to the database file relative to the current script
+    db_path = os.path.join(current_dir, '..', 'us-funds-project.db')
+    return duckdb.connect(database=db_path, read_only=True)
 
 con = connect_to_db()
 st.set_page_config(layout="wide")
@@ -29,18 +34,100 @@ def get_etf_facts (con, selected_symbol: str) -> pd.DataFrame:
     """
     etf_fact_table_query = """
               SELECT
-                  fund_short_name,
-                  fund_long_name,
-                  currency,
-                  fund_category,
-                  fund_family,
-                  exchange_code,
-                  exchange_name,
-                  exchange_timezone,
-                  investment_strategy,
-                  investment_type,
-                  size_type
-              FROM "us-funds-project".main_etfs.dim_etf
+                fund_symbol,
+                price_date,
+                open,
+                high,
+                low,
+                close,
+                adj_close,
+                volume,
+                avg_vol_3month,
+                avg_vol_10day,
+                total_net_assets,
+                day50_moving_average,
+                day200_moving_average,
+                week52_high_low_change,
+                week52_high_low_change_perc,
+                week52_high,
+                week52_high_change,
+                week52_high_change_perc,
+                week52_low,
+                week52_low_change,
+                week52_low_change_perc,
+                fund_yield,
+                inception_date,
+                annual_holdings_turnover,
+                fund_annual_report_net_expense_ratio,
+                category_annual_report_net_expense_ratio,
+                asset_stocks,
+                asset_bonds,
+                fund_sector_basic_materials,
+                fund_sector_communication_services,
+                fund_sector_consumer_cyclical,
+                fund_sector_consumer_defensive,
+                fund_sector_energy,
+                fund_sector_financial_services,
+                fund_sector_healthcare,
+                fund_sector_industrials,
+                fund_sector_real_estate,
+                fund_sector_technology,
+                fund_sector_utilities,
+                fund_price_book_ratio,
+                fund_price_cashflow_ratio,
+                fund_price_earning_ratio,
+                fund_price_sales_ratio,
+                fund_bond_maturity,
+                fund_bond_duration,
+                fund_bonds_us_government,
+                fund_bonds_aaa,
+                fund_bonds_aa,
+                fund_bonds_a,
+                fund_bonds_bbb,
+                fund_bonds_bb,
+                fund_bonds_b,
+                fund_bonds_below_b,
+                fund_bonds_others,
+                top10_holdings_total_assets,
+                returns_as_of_date,
+                fund_return_ytd,
+                category_return_ytd,
+                fund_return_1month,
+                category_return_1month,
+                fund_return_3months,
+                category_return_3months,
+                fund_return_1year,
+                category_return_1year,
+                fund_return_3years,
+                category_return_3years,
+                fund_return_5years,
+                category_return_5years,
+                fund_return_10years,
+                category_return_10years,
+                years_up,
+                years_down,
+                fund_alpha_3years,
+                fund_beta_3years,
+                fund_mean_annual_return_3years,
+                fund_r_squared_3years,
+                fund_stdev_3years,
+                fund_sharpe_ratio_3years,
+                fund_treynor_ratio_3years,
+                fund_alpha_5years,
+                fund_beta_5years,
+                fund_mean_annual_return_5years,
+                fund_r_squared_5years,
+                fund_stdev_5years,
+                fund_sharpe_ratio_5years,
+                fund_treynor_ratio_5years,
+                fund_alpha_10years,
+                fund_beta_10years,
+                fund_mean_annual_return_10years,
+                fund_r_squared_10years,
+                fund_stdev_10years,
+                fund_sharpe_ratio_10years,
+                fund_treynor_ratio_10years
+              FROM "us-funds-project".main_etfs.fact_etfs
               WHERE fund_symbol=?
           """
     return con.execute(etf_fact_table_query, (selected_symbol,)).df()
@@ -67,28 +154,6 @@ def get_etf_top_10_holdings (con, selected_symbol: str) -> pd.DataFrame:
     
     return con.execute(etf_top_10_holdings_query, (selected_symbol,)).df()
 
-def get_portfolio_weight (con, selected_symbol: str) -> pd.DataFrame:
-    """
-    Get top 10 holdings about the selected ETF.
-    
-    Args:
-        con: The database connection object.
-        selected_symbol: The symbol for the ETF.
-        
-    Returns:
-        A DataFrame with the ETF's basic information.
-    """
-    etf_portfolio_weight_query ="""
-            select
-                holding_name as Company,
-                (holding_weight * 100) as 'Portfolio Weight in %'
-            from "us-funds-project".main_etfs.dim_holdings_enriched
-            where fund_symbol=?
-            order by holding_weight desc
-          """
-    
-    return con.execute(etf_portfolio_weight_query, (selected_symbol,)).df()
-
 def get_etf_percentage_of_net_assets (con, selected_symbol: str) -> pd.DataFrame:
     """
     Get top 10 holdings about the selected ETF.
@@ -103,13 +168,35 @@ def get_etf_percentage_of_net_assets (con, selected_symbol: str) -> pd.DataFrame
     etf_perc_net_assets_query ="""
             select
                 fund_symbol,
-                sum(holding_weight) as '% Net assets'
+                round((sum(holding_weight) * 100),2) as '% Net assets'
             from "us-funds-project".main_etfs.dim_holdings
             where fund_symbol=?
             group by fund_symbol
           """
 
     return con.execute(etf_perc_net_assets_query, (selected_symbol,)).df()
+
+def get_etf_sectors (con, selected_symbol: str) -> pd.DataFrame:
+    """
+    Get sectors about the selected ETF.
+    
+    Args:
+        con: The database connection object.
+        selected_symbol: The symbol for the ETF.
+        
+    Returns:
+        A DataFrame with the ETF's basic information.
+    """
+    etf_sectors_query ="""
+            select
+                sector,
+                (weight * 100) as 'Weight in %'
+            from "us-funds-project".main_etfs.dim_sectors
+            where fund_symbol=?
+            order by weight desc
+          """
+    
+    return con.execute(etf_sectors_query, (selected_symbol,)).df()
 
 def get_etf_basic_info(con, selected_symbol: str) -> pd.DataFrame:
     """Get basic info about the selected ETF.
@@ -200,67 +287,82 @@ def show_fund_details(con, selected_symbol: str):
         # Fetch and display ETF basic info
         df_dim_etf = get_etf_basic_info(con, selected_symbol)
         df_top_10_holdings = get_etf_top_10_holdings(con, selected_symbol)
-        df_portfolio_weight = get_portfolio_weight(con, selected_symbol)
+        df_sectors = get_etf_sectors(con, selected_symbol)
         df_percentage_of_net_assets = get_etf_percentage_of_net_assets(con, selected_symbol)
+        df_fact_etf = get_etf_facts(con,selected_symbol)
+        df_fact_etf['total_net_assets'] = df_fact_etf['total_net_assets'].apply(lambda x: "${:,.2f}".format(x))
+        df_fact_etf['inception_date'] = pd.to_datetime(df_fact_etf['inception_date']).dt.date
+        df_fact_etf['price_date'] = pd.to_datetime(df_fact_etf['price_date'])
+        df_valuation_ratios = df_fact_etf[['fund_price_book_ratio','fund_price_cashflow_ratio','fund_price_earning_ratio','fund_price_sales_ratio']]
+        df_valuation_ratios = df_valuation_ratios.drop_duplicates()
         if not df_dim_etf.empty:
             st.subheader("Selected Fund")
             generate_card(f"{selected_symbol}")
             st.text(f"For {selected_symbol}, we can provide data between the {min_date.date()} and {max_date.date()}")
 
 
-###         Profile and Investment
+##         Profile and Investment
             st.header("Profile and Investment")
 
             generate_investment_profile(fund_long_name = f"{df_dim_etf['fund_long_name'].iloc[0]}",
                                         fund_category=f"{df_dim_etf['fund_category'].iloc[0]}",
-                                        inception_date=f"none",
                                         fund_family= f"{df_dim_etf['fund_family'].iloc[0]}",
                                         currency=f"{df_dim_etf['currency'].iloc[0]}",
                                         exchange_name = f"{df_dim_etf['exchange_name'].iloc[0]}",
                                         exchange_code = f"{df_dim_etf['exchange_code'].iloc[0]}",
-                                        region = f"US"
+                                        region = f"US",
+                                        inception_date = f"{df_fact_etf['inception_date'].iloc[0]}",
+                                        total_net_assets = f"{df_fact_etf['total_net_assets'].iloc[0]}"
                                         )
 ###         Investment strategy            
             st.subheader("Investment strategy")
             generate_long_text(f"Investment Strategy: {df_dim_etf['investment_strategy'].iloc[0]}")
-           
+
+            st.header("Valuation and Quality Metrics")
             col1, col2 = st.columns(2)
             with col1:  
                 st.subheader("Top 10 Holdings")
                 st.dataframe(df_top_10_holdings,hide_index=True)
 
-            with col2:  
+            with col2:
+                st.subheader("Portfolio Weight by Company")
                 fig = create_donut_chart(
                 labels=df_top_10_holdings['Company'],
                 values=df_top_10_holdings['Portfolio Weight in %'],
                 hole_size=0.4,  # Example of customizing the hole size
-                title_text='Portfolio Weight by Company'
+                title_text=f"Top 10 holdings as % of portfolio : {df_percentage_of_net_assets['% Net assets'].iloc[0]} % Net assets"
                 )
 
-            # Display the chart in the Streamlit app
+                # Display donut chart
                 st.plotly_chart(fig)
-            
-            col1, col2, col3 = st.columns(3)  # Adjust the number of columns as needed
-            
-            with col1:
 
+            st.subheader("Valuation Ratio")
+            st.dataframe( df_valuation_ratios, column_config = {"fund_price_book_ratio" : "Fund Price/Book Ratio",
+                                                            "fund_price_cashflow_ratio":"Fund Price/Cashflow Ratio",
+                                                            "fund_price_earning_ratio":"Fund Price/Earning Ratio",
+                                                            "fund_price_sales_ratio":"Fund Price/Sales Ratio",
+                                                            },hide_index=True)
+            st.subheader("Sector Allocation")
+            fig = create_donut_chart(
+            labels=df_sectors['sector'],
+            values=df_sectors['Weight in %'],
+            hole_size=0.4,  # Example of customizing the hole size
+            title_text=f""
+            )
 
-                generate_card(f"Currency: {df_dim_etf['currency'].iloc[0]}")
-                generate_card(f"Fund Family: {df_dim_etf['fund_family'].iloc[0]}")
-                generate_card(f"Exchange Timezone: {df_dim_etf['exchange_timezone'].iloc[0]}")
-            
-            with col2:
-                generate_card(f"Fund Long Name: {df_dim_etf['fund_long_name'].iloc[0]}")
-                generate_card(f"Fund Category: {df_dim_etf['fund_category'].iloc[0]}")
-                generate_card(f"Exchange Code: {df_dim_etf['exchange_code'].iloc[0]}")
-                
-            
-            with col3:
-                generate_card(f"Exchange Name: {df_dim_etf['exchange_name'].iloc[0]}")
-                generate_card(f"Investment Type: {df_dim_etf['investment_type'].iloc[0]}")
-                generate_card(f"Size Type: {df_dim_etf['size_type'].iloc[0]}")
-                # Add more cards or information here as needed
+            # Display donut chart
+            st.plotly_chart(fig)
 
+            st.header("Risk Metrics")
+
+            st.header("Price & Volume data")
+            # Generate and display the candlestick chart
+            fig = create_candlestick_chart(df_fact_etf)
+            st.plotly_chart(fig)
+            # Generate and display the volume chart
+            volume_fig = create_volume_chart(df_fact_etf)
+            st.plotly_chart(volume_fig)
+            
         else:
             st.write("No basic information found for the selected ETF.")
 
