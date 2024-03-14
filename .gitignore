@@ -1,0 +1,8 @@
+
+streamlit_app/__pycache__
+.vscode
+logs
+us_funds_dbt/target/
+us_funds_dbt/dbt_packages/
+us_funds_dbt/logs/
+us-funds-project.db

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Table</title>
+    <style>
+        .mod-ui-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .mod-ui-table th, .mod-ui-table td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .mod-ui-table--two-column th {
+            background-color: #f2f2f2;
+        }
+        .mod-profile-and-investment-app__table--invest td .mod-format__currency {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <table class="mod-ui-table mod-ui-table--two-column mod-profile-and-investment-app__table--invest">
+        <tbody>
+            <tr>
+                <th>Fund Name</th>
+                <td>{fund_long_name}</td>
+            </tr>
+            <tr>
+                <th>Fund Category</th>
+                <td>{fund_category}</td>
+            </tr>
+            <tr>
+                <th>Inception Date/th>
+                <td>{inception_date}</td>
+            </tr>
+            <tr>
+                <th>Fund Family</th>
+                <td>
+                    <div>{fund_family}</div>
+                </td>
+            </tr>
+            <tr>
+                <th>Currency</th>
+                <td>
+                    <div>{currency}</div>
+                </td>
+            </tr>
+            <tr>
+                <th>Exchange Name</th>
+                <td>{exchange_name}</td>
+            </tr>
+            <tr>
+                <th>Exchange code</th>
+                <td>{exchange_code}</td>
+            </tr>
+            <tr>
+                <th>Region</th>
+                <td>{region}</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

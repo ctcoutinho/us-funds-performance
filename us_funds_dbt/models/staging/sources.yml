@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: us-funds
+    database: "us-funds-project"  
+    schema: main  
+    tables:
+      - name: etfs
+      - name: etfs_prices
+      
+      - name: mutual_funds
+
+      - name: mutual_fund_prices
