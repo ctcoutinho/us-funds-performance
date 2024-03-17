@@ -1,4 +1,5 @@
 # US-funds-performance
+Application accessible here : https://us-funds-ctcoutinho.sbbdata.com/
 
 ## Setup
 
@@ -6,10 +7,9 @@
 
 To run this project locally you'll need:
 - python 3.10 or later
-- us-funds-project.db from S3 : [s3://us-funds-project-duck-db-bucket/us-funds-project.db](https://us-funds-project-duck-db-bucket.s3.eu-west-3.amazonaws.com/us-funds-project.db)
+- Duckdb database file (us-funds-project.db) from S3 : [s3://us-funds-project-duck-db-bucket/us-funds-project.db](https://us-funds-project-duck-db-bucket.s3.eu-west-3.amazonaws.com/us-funds-project.db)
 
 In order to stick with the standard way of managing python projects, [poetry](https://python-poetry.org/) will be used as package manager.
-See [FAQ](#faq) for common issues.
 
 ### Installation
 First install poetry : 
