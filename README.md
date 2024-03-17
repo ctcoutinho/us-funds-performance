@@ -25,7 +25,7 @@ poetry install
 
 ## Running the project
 
-For dbt and Streamlit to work, you have to place duckdb file at the root of the project: us-funds-performance/us-funds-project.db !
+For dbt and Streamlit to work, you have to place .duckdb database file at the root of the project: us-funds-performance/us-funds-project.db !
 
 To run dbt and modify and project :
 
@@ -37,6 +37,22 @@ Navigate to /streamlit_app and run :
 
 ```bash
 streamlit run etf_app.py
+```
+
+You can now access the app on : http://localhost:8501
+
+## Running the project using the Dockerfile
+
+- 1) Build the Docker image from the directory containing the Dockerfile:
+
+```bash
+docker build -t us-funds-project .
+```
+
+- 2) Run the container with a mounted volume for persistent storage of your database file. This command mounts the us-funds-performance/ directory from your host to the container. 
+
+```bash
+docker run -d -p 8501:8501 -v $(pwd)/us-funds-project.db:/usr/src/app/us-funds-project.db us-funds-project
 ```
 
 You can now access the app on : http://localhost:8501
