@@ -1,7 +1,16 @@
 # US-funds-performance
+![etf_appStreamlit-GoogleChrome2024-03-2609-43-39-ezgif com-video-to-gif-converter](https://github.com/ctcoutinho/us-funds-performance/assets/159946582/7f8cc3a3-8cbd-4a45-a984-c6ebc8320303)
+
 Application accessible here : https://us-funds-ctcoutinho.sbbdata.com/
 
-## Setup
+Welcome to the US-Funds Dashboard, a Streamlit application designed to provide insightful and comprehensive ETF information. The app leverages the power of financial data from Yahoo Finance, processed and stored in DuckDB, and modeled using dbt following the Ralph Kimball methodology. This approach ensures that the data is not only accurate but also presented in a user-friendly and accessible manner.
+
+## Features
+- Comprehensive Analysis: Explore ETF data through various dimensions such as time, geography, and sector.
+- Interactive Interface: Utilize Streamlit’s interactive features to filter and manipulate ETF data for personalized analysis.
+- Data Integrity: Benefit from a rigorous data pipeline that cleans, transforms, and models the data to ensure high-quality insights.
+
+## Getting Started
 
 ### Requirements
 
